@@ -37,6 +37,19 @@ cd backend
 pytest
 ```
 
+### Run the frontend
+
+Keep the backend running, then open a second terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000`. The header reports **Backend online** only when
+the browser receives a successful response from the FastAPI `/health` endpoint.
+
 ## Planned architecture
 
 ```text

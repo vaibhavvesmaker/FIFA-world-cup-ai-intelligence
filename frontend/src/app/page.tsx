@@ -1,3 +1,5 @@
+import { SystemStatus } from "@/components/system-status";
+
 const pillars = [
   {
     label: "Live intelligence",
@@ -42,9 +44,7 @@ export default function Home() {
           <a href="#history">History</a>
           <a href="#method">Method</a>
         </nav>
-        <div className="system-status">
-          <span className="status-dot" /> Foundation online
-        </div>
+        <SystemStatus />
       </header>
 
       <section className="hero" id="top">

@@ -12,6 +12,7 @@ class Settings(BaseSettings):
 
     app_name: str = "FIFA World Cup AI Intelligence API"
     app_env: str = "development"
+    frontend_origin: str = "http://localhost:3000"
     database_url: str | None = None
     football_api_base_url: str | None = None
     football_api_key: str | None = None
