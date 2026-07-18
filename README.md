@@ -30,6 +30,10 @@ Open `http://127.0.0.1:8000/health`. Expected response:
 {"status":"ok","service":"FIFA World Cup AI Intelligence API","environment":"development"}
 ```
 
+With `FOOTBALL_API_KEY` configured, the next normalized World Cup fixture is
+available at `http://127.0.0.1:8000/matches/next`. The provider key remains on
+the backend and is never exposed to the browser.
+
 Run the tests:
 
 ```bash

@@ -1,7 +1,8 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
+from app.services.football import FootballClient, FootballProviderError
 
 
 settings = get_settings()
@@ -29,3 +30,31 @@ def health_check() -> dict[str, str]:
         "service": settings.app_name,
         "environment": settings.app_env,
     }
+
+
+def get_football_client() -> FootballClient:
+    if not settings.football_api_base_url or not settings.football_api_key:
+        raise HTTPException(
+            status_code=503,
+            detail="Football data source is not configured",
+        )
+    return FootballClient(settings.football_api_base_url, settings.football_api_key)
+
+
+@app.get("/matches/next", tags=["matches"])
+async def next_world_cup_match(
+    client: FootballClient = Depends(get_football_client),
+) -> dict:
+    """Return the next FIFA World Cup fixture in a stable internal format."""
+
+    try:
+        fixture = await client.get_next_world_cup_fixture()
+    except FootballProviderError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail="Football data provider is temporarily unavailable",
+        ) from exc
+
+    if fixture is None:
+        raise HTTPException(status_code=404, detail="No upcoming World Cup fixture found")
+    return fixture
