@@ -1,5 +1,10 @@
 import { SystemStatus } from "@/components/system-status";
-
+import {
+  getMatchPrediction,
+  getWorldCup2026Matches,
+  type MatchPrediction,
+  type WorldCupMatch,
+} from "@/lib/api";
 const pillars = [
   {
     label: "Live intelligence",
@@ -28,7 +33,80 @@ const modelSteps = [
   ["04", "Audit", "Store the prediction with its timestamp"],
 ];
 
-export default function Home() {
+export default async function Home() {
+  let matches: WorldCupMatch[] = [];
+
+  try {
+    const data = await getWorldCup2026Matches();
+    matches = data.matches;
+  } catch {
+    matches = [];
+  }
+
+  const featuredMatch = [...matches].sort(
+    (a, b) =>
+      Date.parse(b.kickoff ?? "") - Date.parse(a.kickoff ?? ""),
+  )[0];
+  let prediction: MatchPrediction | null = null;
+
+if (featuredMatch) {
+  try {
+    prediction = await getMatchPrediction(featuredMatch.match_id);
+  } catch {
+    prediction = null;
+  }
+}
+{prediction && (
+  <div className="prediction-grid">
+    <div className="prediction-item">
+      <span>{featuredMatch.home_team.name} win</span>
+      <strong>
+        {(prediction.probabilities.home_win * 100).toFixed(1)}%
+      </strong>
+      <div className="probability-track">
+        <i
+          style={{
+            width: `${prediction.probabilities.home_win * 100}%`,
+          }}
+        />
+      </div>
+    </div>
+
+    <div className="prediction-item">
+      <span>Draw</span>
+      <strong>
+        {(prediction.probabilities.draw * 100).toFixed(1)}%
+      </strong>
+      <div className="probability-track">
+        <i
+          style={{
+            width: `${prediction.probabilities.draw * 100}%`,
+          }}
+        />
+      </div>
+    </div>
+
+    <div className="prediction-item">
+      <span>{featuredMatch.away_team.name} win</span>
+      <strong>
+        {(prediction.probabilities.away_win * 100).toFixed(1)}%
+      </strong>
+      <div className="probability-track">
+        <i
+          style={{
+            width: `${prediction.probabilities.away_win * 100}%`,
+          }}
+        />
+      </div>
+    </div>
+
+    <small className="model-version">
+      {prediction.model.version} · trained on{" "}
+      {prediction.model.training_matches} earlier matches
+    </small>
+  </div>
+)}
+  
   return (
     <main>
       <header className="topbar">
@@ -68,34 +146,107 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="match-console" aria-label="Live intelligence preview">
-          <div className="console-head">
-            <span>INTELLIGENCE CONSOLE</span>
-            <span className="pending-pill">DATA SOURCE PENDING</span>
-          </div>
-          <div className="console-body">
-            <div className="orbital" aria-hidden="true">
-              <span className="orbit orbit-one" />
-              <span className="orbit orbit-two" />
-              <span className="core">AI</span>
-            </div>
-            <div className="console-message">
-              <span className="signal-label">SYSTEM READY</span>
-              <h2>Waiting for a verified match feed</h2>
-              <p>
-                The interface will never present staged data as live. Source,
-                freshness, and model version will appear with every prediction.
-              </p>
-            </div>
-          </div>
-          <div className="console-foot">
-            <span>API <b>READY</b></span>
-            <span>MODEL <b>STAGING</b></span>
-            <span>RAG <b>PLANNED</b></span>
-          </div>
-        </div>
-      </section>
+        <div className="match-console" aria-label="World Cup 2026 intelligence">
+  <div className="console-head">
+    <span>INTELLIGENCE CONSOLE</span>
+    <span className="pending-pill">
+      {featuredMatch ? "2026 FEED CONNECTED" : "FEED UNAVAILABLE"}
+    </span>
+  </div>
 
+  <div className="console-body">
+    <div className="orbital" aria-hidden="true">
+      <span className="orbit orbit-one" />
+      <span className="orbit orbit-two" />
+      <span className="core">AI</span>
+    </div>
+
+    <div className="console-message">
+      <span className="signal-label">
+        COMMUNITY DATA · {matches.length} MATCHES
+      </span>
+
+      {featuredMatch ? (
+        <>
+          <h2>
+            {featuredMatch.home_team.name}{" "}
+            {featuredMatch.score.home ?? "–"}
+            {" — "}
+            {featuredMatch.score.away ?? "–"}{" "}
+            {featuredMatch.away_team.name}
+          </h2>
+          <p>
+            {featuredMatch.stage?.toUpperCase() ?? "WORLD CUP 2026"} ·{" "}
+            {featuredMatch.kickoff}. This feed is community-maintained and
+            clearly separated from verified provider data.
+          </p>
+          {prediction && (
+            <div className="prediction-grid">
+              <div className="prediction-item">
+                <span>{featuredMatch.home_team.name} win</span>
+                <strong>
+                  {(prediction.probabilities.home_win * 100).toFixed(1)}%
+                </strong>
+                <div className="probability-track">
+                  <i
+                    style={{
+                      width: `${prediction.probabilities.home_win * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="prediction-item">
+                <span>Draw</span>
+                <strong>
+                  {(prediction.probabilities.draw * 100).toFixed(1)}%
+                </strong>
+                <div className="probability-track">
+                  <i
+                    style={{
+                      width: `${prediction.probabilities.draw * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="prediction-item">
+                <span>{featuredMatch.away_team.name} win</span>
+                <strong>
+                  {(prediction.probabilities.away_win * 100).toFixed(1)}%
+                </strong>
+                <div className="probability-track">
+                  <i
+                    style={{
+                      width: `${prediction.probabilities.away_win * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <small className="model-version">
+                {prediction.model.version} · trained on{" "}
+                {prediction.model.training_matches} earlier matches
+              </small>
+            </div>
+          )}
+        </> 
+      ) : (
+        <>
+          <h2>World Cup feed temporarily unavailable</h2>
+          <p>The dashboard will reconnect automatically when data returns.</p>
+        </>
+      )}
+    </div>
+  </div>
+
+  <div className="console-foot">
+    <span>API <b>CONNECTED</b></span>
+    <span>MODEL <b>{prediction ? "ACTIVE" : "UNAVAILABLE"}</b></span>
+    <span>RAG <b>PLANNED</b></span>
+  </div>
+</div>
+</section>
       <section className="proof-strip" aria-label="System principles">
         <div><strong>TRACEABLE</strong><span>Every prediction timestamped</span></div>
         <div><strong>GROUNDED</strong><span>Answers tied to evidence</span></div>

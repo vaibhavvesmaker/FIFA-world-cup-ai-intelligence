@@ -118,3 +118,48 @@ footer { min-height: 130px; padding: 30px clamp(24px, 7vw, 110px); display: flex
   .section-heading { gap: 24px; }
   footer { align-items: flex-start; flex-direction: column; gap: 20px; }
 }
+.prediction-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.prediction-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 16px;
+  color: #ffffff;
+}
+
+.prediction-item span {
+  color: #a9b8c4;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.prediction-item strong {
+  color: #b7ff24;
+  font-size: 14px;
+}
+
+.probability-track {
+  grid-column: 1 / -1;
+  height: 5px;
+  overflow: hidden;
+  background: #18303d;
+}
+
+.probability-track i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #18d7c5, #b7ff24);
+}
+
+.model-version {
+  margin-top: 5px;
+  color: #78909e;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
