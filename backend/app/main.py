@@ -1,9 +1,12 @@
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-
+from app.services.prediction import PredictionError, predict_match
 from app.config import get_settings
 from app.services.football import FootballClient, FootballProviderError
-
+from app.services.world_cup_2026 import (
+    WorldCup2026ProviderError,
+    get_world_cup_2026_matches,
+)
 
 settings = get_settings()
 app = FastAPI(
@@ -40,7 +43,43 @@ def get_football_client() -> FootballClient:
         )
     return FootballClient(settings.football_api_base_url, settings.football_api_key)
 
+@app.get("/matches/2026", tags=["matches"])
+async def world_cup_2026_matches() -> dict:
+    """Return normalized World Cup 2026 matches from the community feed."""
 
+    try:
+        matches = await get_world_cup_2026_matches()
+    except WorldCup2026ProviderError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail="World Cup 2026 community provider is temporarily unavailable",
+        ) from exc
+
+    return {
+        "count": len(matches),
+        "source": {
+            "provider": "community_worldcup2026",
+            "verified": False,
+        },
+        "matches": matches,
+    }
+@app.get("/predictions/{match_id}", tags=["predictions"])
+async def match_prediction(match_id: str) -> dict:
+    """Generate an auditable pre-match prediction for a 2026 fixture."""
+
+    try:
+        matches = await get_world_cup_2026_matches()
+        return predict_match(matches, match_id)
+    except WorldCup2026ProviderError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail="World Cup 2026 data provider is temporarily unavailable",
+        ) from exc
+    except PredictionError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=str(exc),
+        ) from exc
 @app.get("/matches/next", tags=["matches"])
 async def next_world_cup_match(
     client: FootballClient = Depends(get_football_client),

@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     database_url: str | None = None
     football_api_base_url: str | None = None
     football_api_key: str | None = None
+    world_cup_2026_api_base_url: str = "https://worldcup26.ir"
     openai_api_key: str | None = None
 
     model_config = SettingsConfigDict(
